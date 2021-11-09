@@ -1,6 +1,6 @@
 {
     "name": "@tsiresy/api-server",
-    "version": "1.0.25",
+    "version": "1.0.26",
     "description": "",
     "main": "index.ts",
     "scripts": {
@@ -9,6 +9,7 @@
     },
     "author": "Tsiresy Milà",
     "keywords": [
+        "tsiresy",
         "api",
         "server",
         "mvc",
