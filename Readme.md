@@ -4,14 +4,12 @@ API SERVER is an ts module that have for goal to create MVC pattern with express
 
 *Installing* 
 
-<br>
-
-    npm install --save @api/server 
+    npm install --save @tsiresy/api-server 
     
-After that you create config file inside confid/app.ts
+After that you create config file inside config/app.ts
 
 ```ts
-    import { ServerOption } from "@api/server";
+    import { ServerOption } from "@tsiresy/api-server";
     import path from "path";
     export const serverOption: ServerOption = {
         controllers: [path.join(__dirname, '..', '/controllers/**/*Controller.ts')],
@@ -27,9 +25,9 @@ After that you can create server via express or fastify
 
 ```ts
 import "reflect-metadata";
-import { FastifyApplication, AppFactory, App } from '@api/server';
+import { FastifyApplication, AppFactory, App } from '@tsiresy/api-server';
 import {serverOption} from './config/app.ts'
-Fasify instance
+// Fasify instance
 async function bootstrap() {
     const app: App = await AppFactory.create<FastifyApplication>(FastifyApplication, serverOption);
     await app.serve(3000, 'localhost', 50, (_e, host) => {
@@ -45,7 +43,7 @@ bootstrap()
 
 ```ts
 import "reflect-metadata";
-import { ExpressApplication, AppFactory, App } from '@api/server';
+import { ExpressApplication, AppFactory, App } from '@tsiresy/api-server';
 import {serverOption} from './config/app.ts'
 
 // Express inntance
@@ -63,10 +61,10 @@ bootstrap()
 ## Controller 
 There is an exemple of controller with opeapi 
 ```ts
-import { All, Get, Middleware, OpenApi } from "@api/server"
-import { AppRequest, CookieType, AppResponse } from "@api/server"
-import { Params, Req, Res, Query, Headers, Ip, Session, Cookies } from "@api/server";
-import { Controller } from "@api/server";
+import { All, Get, Middleware, OpenApi } from "@tsiresy/api-server"
+import { AppRequest, CookieType, AppResponse } from "@tsiresy/api-server"
+import { Params, Req, Res, Query, Headers, Ip, Session, Cookies } from "@tsiresy/api-server";
+import { Controller } from "@tsiresy/api-server";
 
 
 
@@ -126,7 +124,7 @@ Middleware is based on express middleware but it can work perfectly with fastify
 
 ```ts
 import { NextFunction,Request,Response } from 'express';
-import { AppMiddleWare } from '@api/server';
+import { AppMiddleWare } from '@tsiresy/api-server';
 
 export default class ExempleMiddleWare implements AppMiddleWare {
 
@@ -138,7 +136,7 @@ export default class ExempleMiddleWare implements AppMiddleWare {
 
 ```
 
-FOr database create  .env file and specify some parameters
+For database create  .env file and specify some parameters
 
 ```
 NODE_ENV=development
@@ -148,5 +146,5 @@ USER=root
 PASSWORD=password
 ```
 
-## Tsiresy Milà
-### tsiresymila@gmail.com
+### Tsiresy Milà
+#### tsiresymila@gmail.com

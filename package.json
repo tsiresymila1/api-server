@@ -1,8 +1,8 @@
 {
-    "name": "@api/server",
-    "version": "2.0.0",
+    "name": "@tsiresy/api-server",
+    "version": "2.0.0-d",
     "description": "",
-    "main": "./cjs/index.js",
+    "main": "./esm2015/index.js",
     "module": "./esm2015/index.js",
     "es2015": "./esm2015/index.js",
     "typings": "./lib/index.ts",
@@ -12,14 +12,16 @@
     },
     "author": "Tsiresy Milà",
     "keywords": [
-        "tsiresy",
         "api",
         "server",
         "mvc",
         "decorator",
         "express",
         "fastify",
-        "typescript"
+        "typescript",
+        "ts",
+        "controller",
+        "sequilize"
     ],
     "license": "ISC",
     "repository": {
