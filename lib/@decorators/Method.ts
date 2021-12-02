@@ -5,9 +5,6 @@ const methodFactory = (method: string)=>{
     return (url: string)=>{
         return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
             let value: Function = descriptor.value
-            // const args = Array.prototype.slice.call(target[propertyKey]['arguments'], 0, target[propertyKey]['arguments'].length);
-            // const argTypes = args.map(e => typeof e); 
-            // console.log(argTypes);
             if(target['routes']){
                 target['routes'][propertyKey] =  {
                     method: method,
@@ -35,7 +32,10 @@ export const Middleware = (middleware: Function) => {
         if(!target['middlewares']){
             target['middlewares'] = {} 
         }
-        target['middlewares'][propertyKey] = middleware
+        if (!target['middlewares'][propertyKey]) {
+            target['middlewares'][propertyKey] = []
+        }
+        target['middlewares'][propertyKey].push(middleware)
         return target;
     }
     

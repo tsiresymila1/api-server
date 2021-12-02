@@ -3,9 +3,11 @@ import { ParamsKey } from "../@types";
 const paramsFactory = (ptype: string)=> {
     return (key?: string) => {
         return (target: any, propertyKey: string, parameterIndex: number) => {
+            var t = Reflect.getMetadata("design:type", target, propertyKey.toString());
             let data = {
                 param : ptype,
-                value :  key
+                value: key,
+                type: t
             } as ParamsKey;
             if(target['params']){
                 if(!target['params'][propertyKey]){
@@ -31,6 +33,8 @@ export const Params = paramsFactory('params')
 export const Body = paramsFactory('body')
 export const Query = paramsFactory('query')
 export const Headers = paramsFactory('headers')
+export const Files = paramsFactory('files')
 export const Session = paramsFactory('session')
 export const Cookies = paramsFactory('cookies')
 export const Ip = paramsFactory('ip')
+export const Database = paramsFactory('db')

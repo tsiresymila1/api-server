@@ -1,41 +1,31 @@
 import "reflect-metadata";
-import  TestController  from "./controllers/TestController";
-import express from 'express';
-import {fastify} from 'fastify'
-import { createExpressServer, createFastifyServer } from '../lib/server';
-import ExempleController from './controllers/ExempleController';
-import ExempleMiddleWare from './middlewares/ExempleMiddleware';
+import { AppFactory } from './../lib/@factory/factory';
+import { App } from "../lib/server/server";
+import { FastifyApplication } from './../lib/server/fastify-server';
+import { serverOption } from './config/app';
+import { ExpressApplication } from './../lib/server/express-server';
 
-createFastifyServer(fastify(), {
-    controllers: [ExempleController, TestController],
-    middlewares:[ExempleMiddleWare],
-},{
-    options :{
-        title : 'API SERVER ',
-        version : '1.0.0'
-    },
-    url : '/docs'
-}).then((app)=>{
-    app.listen(8080, 'localhost', 5, ()=>{
-        console.log('Fastify server starting on port 8080')
-    })
-})
- 
-// createExpressServer(express(), {
-//     controllers: [ExempleController],
-//     middlewares:[ExempleMiddleWare],
-// },{
-//     options :{
-//         title : 'API SERVER ',
-//         version : '1.0.0'
-//     },
-//     url : '/docs'
-// }).then((app)=>{
-//     console.log(JSON.stringify(spec,null,2))
-//     app.listen(8080, 'localhost', 5, ()=>{
-//         console.log('Express server starting on port 8080') 
-//     })
-// })
+
+
+// Express intance
+async function bootstrap() {
+    const app: App = await AppFactory.create<ExpressApplication>(ExpressApplication, serverOption); /// .create<FastifyApplication>(AppServer)
+    await app.serve(3000, (port) => {
+        console.log(`Instance of express server running on port ${port}`)
+    });
+}
+// boot app
+bootstrap()
+
+// Fasify instance
+// async function bootstrap() {
+//     const app: App = await AppFactory.create<FastifyApplication>(FastifyApplication, serverOption);
+//     await app.serve(3000, 'localhost', 50, (_e, host) => {
+//         console.log(`Instance of fastify server running on  ${host}`)
+//     });
+// }
+// // boot app
+// bootstrap()
 
 
 

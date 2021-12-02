@@ -6,30 +6,38 @@ API SERVER is an ts module that have for goal to create MVC pattern with express
 
 <br>
 
-    npm install --save @tsiresy/api-server 
+    npm install --save @api/server 
     
+After that you create config file inside confid/app.ts
+
+```ts
+    import { ServerOption } from "@api/server";
+    import path from "path";
+    export const serverOption: ServerOption = {
+        controllers: [path.join(__dirname, '..', '/controllers/**/*Controller.ts')],
+        middlewares: [path.join(__dirname, '..', '/middlewares/**/*Middleware.ts')],
+        models: [path.join(__dirname, '..', '/models/**/*Model.ts')]
+    }
+
+```
+
 After that you can create server via express or fastify 
 
 ## Fastify server
+
 ```ts
 import "reflect-metadata";
-import {fastify} from 'fastify'
-import {  createFastifyServer } from '@tsiresy/api-server';
-
-createFastifyServer(fastify(), {
-    controllers: [ExempleController], // register all controllers here 
-    middlewares:[ExempleMiddleWare], // register all global middlewares here 
-},{
-    options :{
-        title : 'API SERVER ',
-        version : '1.0.0'
-    },
-    url : '/docs' // OpenApi doc url
-}).then((app)=>{
-    app.listen(8080, 'localhost', 5, ()=>{
-        console.log('Fastify server starting on port 8080')
-    })
-})
+import { FastifyApplication, AppFactory, App } from '@api/server';
+import {serverOption} from './config/app.ts'
+Fasify instance
+async function bootstrap() {
+    const app: App = await AppFactory.create<FastifyApplication>(FastifyApplication, serverOption);
+    await app.serve(3000, 'localhost', 50, (_e, host) => {
+        console.log(`Instance of fastify server running on  ${host}`)
+    });
+}
+// boot app
+bootstrap()
   
 ```
 
@@ -37,33 +45,28 @@ createFastifyServer(fastify(), {
 
 ```ts
 import "reflect-metadata";
-import express from 'express';
-import { createExpressServer } from '@tsiresy/api-server';
+import { ExpressApplication, AppFactory, App } from '@api/server';
+import {serverOption} from './config/app.ts'
 
-createFastifyServer(express(), {
-    controllers: [ExempleController],
-    middlewares:[ExempleMiddleWare],
-},{
-    options :{
-        title : 'API SERVER ',
-        version : '1.0.0'
-    },
-    url : '/docs'
-}).then((app)=>{
-    app.listen(8080, 'localhost', 5, ()=>{
-        console.log('Express server starting on port 8080')
-    })
-})
+// Express inntance
+async function bootstrap() {
+    const app: App = await AppFactory.create<ExpressApplication>(ExpressApplication, serverOption); /// .create<FastifyApplication>(AppServer)
+    await app.serve(3000, (port) => {
+        console.log(`Instance of express server running on port ${port}`)
+    });
+}
+// boot app
+bootstrap()
  
 ```
 
 ## Controller 
 There is an exemple of controller with opeapi 
 ```ts
-import { All, Get, Middleware, OpenApi } from "@tsiresy/api-server"
-import { AppRequest, CookieType, AppResponse } from "@tsiresy/api-server"
-import { Params, Req, Res, Query, Headers, Ip, Session, Cookies } from "@tsiresy/api-server";
-import { Controller } from "@tsiresy/api-server";
+import { All, Get, Middleware, OpenApi } from "@api/server"
+import { AppRequest, CookieType, AppResponse } from "@api/server"
+import { Params, Req, Res, Query, Headers, Ip, Session, Cookies } from "@api/server";
+import { Controller } from "@api/server";
 
 
 
@@ -123,9 +126,9 @@ Middleware is based on express middleware but it can work perfectly with fastify
 
 ```ts
 import { NextFunction,Request,Response } from 'express';
-import { ExpressMiddleWare } from '@tsiresy/api-server';
+import { AppMiddleWare } from '@api/server';
 
-export default class ExempleMiddleWare implements ExpressMiddleWare {
+export default class ExempleMiddleWare implements AppMiddleWare {
 
     public use(req: Request, res: Response, next: NextFunction){
         console.log('Called middleware')
@@ -133,6 +136,16 @@ export default class ExempleMiddleWare implements ExpressMiddleWare {
     }
 }
 
+```
+
+FOr database create  .env file and specify some parameters
+
+```
+NODE_ENV=development
+DRIVER=mysql/postgres/sqlite/mongo
+DATABASE=database
+USER=root
+PASSWORD=password
 ```
 
 ## Tsiresy Milà

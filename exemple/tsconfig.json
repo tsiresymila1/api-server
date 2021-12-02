@@ -1,17 +1,16 @@
 {
     "compilerOptions": {
-        "allowJs": false,
-        "target": "ES6",
-        "moduleResolution": "node",
-        "allowSyntheticDefaultImports": true,
         "module": "commonjs",
-        "sourceMap": false,
-        "listEmittedFiles": true,
-        "alwaysStrict": true,
+        "target": "ES6",
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "rootDir": "../",
+        "outDir": ".",
         "esModuleInterop": true,
+        "allowJs": true,
         "resolveJsonModule": true,
-        "skipLibCheck": true,
-        "outDir": "esm2015",
         "typeRoots": ["./lib/@types", "./node_modules/@types"]
 
     },

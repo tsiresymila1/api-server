@@ -1,14 +1,17 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyRequest } from "fastify";
+import { AppMiddleWare } from "./../@types/index";
 import cookie from 'cookie';
-import { Express, Request, Response } from 'express'
-import { AppRequest, AppResponse, ExpressErrorMiddleWare, RouteParams, ExpressMiddleWare, ParamsKey, CookieType } from "../@types";
+import { Express, Request } from 'express'
+import { AppRequest, AppResponse, RouteParams, ParamsKey, CookieType } from "../@types";
 import DefaultMiddleWare from './Controller';
 import { CookieSerializeOptions } from 'cookie';
 import { pathToRegexp, compile } from "path-to-regexp";
 import swagger from 'swagger-schema-official';
-import { TestPost } from './../../exemple/types/test';
+import { App } from './../server/server';
+import { Model } from 'sequelize-typescript';
+import { use } from "./shema";
 
-const bindParams = (params: null | ParamsKey[], req: AppRequest, res: AppResponse, isFastify: boolean, cookieparams?: CookieSerializeOptions): any[] => {
+const bindParams = (params: null | ParamsKey[], req: AppRequest, res: AppResponse, isFastify: boolean, cookieparams?: CookieSerializeOptions, types?: Array<any>): any[] => {
     let methodParams = []
     params?.forEach((value: ParamsKey, index) => {
         let param: any;
@@ -35,7 +38,10 @@ const bindParams = (params: null | ParamsKey[], req: AppRequest, res: AppRespons
             default:
                 param = isFastify ? (req as FastifyRequest).raw[value.param] : (req as Request)[value.param];
         }
-        methodParams.push(value.value ? param[value.value] : param)
+        // sey value assigne object
+        let currentValue = value.value ? param[value.value] : param
+        Object.assign(currentValue, types[index])
+        methodParams.push(currentValue)
     });
     return methodParams;
 }
@@ -56,17 +62,25 @@ export const registerController = async (app: FastifyInstance | Express, object:
     for (let a of properties) {
         let method: Function = object.prototype[a];
         if (typeof method === 'function' && a !== 'constructor') {
+
             let route: RouteParams = object.prototype['routes'][a]
             let params: ParamsKey[] = object.prototype['params'] ? object.prototype['params'][a] ?? [] : []
-            let middleware: Function = object.prototype['middlewares'] ? object.prototype['middlewares'][a] ?? DefaultMiddleWare : DefaultMiddleWare
-            let use: Function = middleware.prototype.use;
-            let applymiddleware: Function | Object = isFastify ? { preHandler: use } : use
+            var types = Reflect.getMetadata("design:paramtypes", object.prototype, a);
+            params = params.reduce<ParamsKey[]>((prev, next, index) => {
+                next.type = types[index];
+                prev.push(next)
+                return prev;
+            }, [])
+            let middlewares: Function[] = object.prototype['middlewares'] ? object.prototype['middlewares'][a] ?? [DefaultMiddleWare] : [DefaultMiddleWare]
+            let uses: Function[] = middlewares.reduce((p, n) => {
+                p.push(n.prototype.use)
+                return p
+            }, [])
+            let applymiddleware: Function[] | { preHandler: Function[] } = isFastify ? { preHandler: uses } : uses
             route.url = String().concat(baseUrl, route.url)
-
             // swagger processing
             let path = object.prototype['paths'] ? object.prototype['paths'][a] ?? null : null as swagger.Operation
             if (path) {
-                
                 const keys = [];
                 await pathToRegexp(route.url, keys)
                 if ('parameters' in path === false) {
@@ -81,7 +95,6 @@ export const registerController = async (app: FastifyInstance | Express, object:
                         required: true
                     })
                     swaggerRoute = toPath({ [key['name']]: `{${key['name']}}` })
-
                 }
                 // openAPi
                 if (spec) {
@@ -91,22 +104,49 @@ export const registerController = async (app: FastifyInstance | Express, object:
                     if (!spec.paths[swaggerRoute]) {
                         spec.paths[swaggerRoute] = {}
                     }
+                    let body = params.filter((e) => e.param === 'body')
+                    let requestBody = {}
+                    for (let b of body) {
+                        let t = Reflect.getMetadata('class:schema', b.type)
+                        if (t) {
+                            let jsonschema = use(b.type as unknown as Function)
+                            console.log(jsonschema)
+                            requestBody =
+                            {
+                                name: 'body',
+                                in: 'body',
+                                required: true,
+                                description: 'Post data',
+                                schema: {
+                                    ...t,
+                                    $ref: ""
+                                }
+                            }
+                            break;
+                        }
+                    }
                     if (route.method === 'all') {
                         spec.paths[swaggerRoute]['get'] = path
-                        spec.paths[swaggerRoute]['post'] = path
                         spec.paths[swaggerRoute]['put'] = path
                         spec.paths[swaggerRoute]['delete'] = path
+                        path["consumes"] = ["application/json"];
+                        path.parameters.push(requestBody)
+                        spec.paths[swaggerRoute]['post'] = path
+                    }
+                    else if (route.method === 'post') {
+                        path["consumes"] = ["application/json"];
+                        path.parameters.push(requestBody)
+                        spec.paths[swaggerRoute][route.method] = path
                     }
                     else {
                         spec.paths[swaggerRoute][route.method] = path
                     }
                 }
             }
-
             //End open api
             // routing configuration
             app[route.method](route.url, applymiddleware, function (req: AppRequest, res: AppResponse) {
-                let methodParams = bindParams(params, req, res, isFastify, cookieparams);
+                let methodParams = bindParams(params, req, res, isFastify, cookieparams, types);
                 method(...methodParams).then((data) => {
                     if (renderType) {
                         res.header('Content-type', renderType);
@@ -123,7 +163,8 @@ export const registerController = async (app: FastifyInstance | Express, object:
 }
 
 
-export const registerMiddleware = async (app: Express | FastifyInstance, object: Function, isExpress: boolean = false) => {
-    app['use']((object.prototype as ExpressMiddleWare | ExpressErrorMiddleWare).use)
+export const registerMiddleware = async (app: App, object: AppMiddleWare, route = "/") => {
+    app.app['use'](route, object.use)
+
 }
 

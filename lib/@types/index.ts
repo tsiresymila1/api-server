@@ -1,9 +1,10 @@
-import { FastifyRequest,FastifyReply } from "fastify"
+import { FastifyRequest, FastifyReply, FastifyInstance } from "fastify"
 import {Request,Response, NextFunction,} from 'express'
 import multer from "multer"
 import {OptionsJson,OptionsUrlencoded} from "body-parser"
 import { CookieSerializeOptions } from "cookie"
 import swagger from 'swagger-schema-official';
+import { Model, ModelCtor } from "sequelize-typescript"
 type ControllerOptions = {
     url?: string
 }
@@ -21,8 +22,9 @@ export type AppResponse = Response | FastifyReply
 export interface  ServerOption {
     sessionSecretKey?: string[],
     cors?: boolean,
-    controllers?: Function[],
-    middlewares?: Function[],
+    controllers?: Function[] | String[],
+    middlewares?: Function[] | String[],
+    models?: (string | ModelCtor<Model<any, any>>)[],
     uploadOption?: multer.Options,
     json? : OptionsJson
     urlencoded? : OptionsUrlencoded;
@@ -46,9 +48,15 @@ export interface  ServerOption {
  export type ParamsKey = {
     param : string,
     value :  string
+     type?: any
  }
 
  export type OpenAPiParams = {
      options : swagger.Info
      url?: string
  }
+
+export class AppMiddleWare {
+    use: (req: Request, res: Response, next: NextFunction) => void;
+}
+
